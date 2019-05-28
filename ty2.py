@@ -4,16 +4,17 @@
 #https://github.com/crixthegreat/
 #codetime: 2019/5/7 15:57:36
 
-import cocos
 import sys
 import os
-import pyglet
-import time
 import random
 import json
+import cocos
+import pyglet
 
 class Highscore(object):
-    
+    """highscore handler
+    """
+
     def __init__(self):
         self.highscore_file = ''
         self.level = 'Normal'
@@ -43,7 +44,7 @@ class Highscore(object):
 
             data_normal = sorted(_data[0:5])
             data_hard = sorted(_data[5:])
-            
+
             if self.level == 'Normal':
                 _ = data_normal
             elif self.level == 'Hard':
@@ -68,7 +69,8 @@ class Highscore(object):
                 json.dump(_data, _file)
             except:
                 print('write file failed')
-        
+
+
     def refresh_highscore(self, normal_highscore_label, hard_highscore_label, *args):
         """show the TOP5 high score
         
@@ -114,7 +116,8 @@ class Highscore(object):
                 print('wrong game level')
 
 class Main(cocos.layer.Layer):
-
+    """main game class
+    """
     is_event_handler = True
     default_color = (0, 0, 0, 255)
     highlight_color = (200, 30, 30, 255)
@@ -128,8 +131,8 @@ class Main(cocos.layer.Layer):
         self.name_input_text = ''
         self.game_started = False
         self.highscore = highscore
-        self.highscore.name ='crix'
-        self.highscore.highscore_file = 'highscore.tp'
+        self.highscore.name = 'crix'
+        self.highscore.highscore_file = './data/highscore.tp'
 
         self.max_len = max_len
 
@@ -139,50 +142,58 @@ class Main(cocos.layer.Layer):
         self.time_passed = 0
         self.schedule_interval(self.refresh_time, 1)
 
-        self.Time_Label = cocos.text.Label('00:00',
-            font_size = 16,
-            font_name = 'Verdana', 
-            bold = False, 
-            color = self.default_color, 
-            x = 165, y = 205)
-        self.add(self.Time_Label)
+        self.time_label = cocos.text.Label('00:00', \
+                font_size=16, \
+                font_name='Verdana', \
+                bold=False, \
+                color=self.default_color, \
+                x=165, y=205)
+        self.add(self.time_label)
 
-        self.best_time_label = cocos.text.Label('99:59',
-            font_size = 16,
-            font_name = 'Verdana', 
-            bold = False, 
-            color = self.default_color, 
-            x = 555, y = 205)
+        self.best_time_label = cocos.text.Label('99:59', \
+                font_size=16, \
+                font_name='Verdana', \
+                bold=False, \
+                color=self.default_color, \
+                x=555, y=205)
         self.add(self.best_time_label)
 
-        self.level_label = cocos.text.Label(self.highscore.level,
-            font_size = 20,
-            font_name = 'Verdana', 
-            bold = True, 
-            color = Main.highlight_color, 
-            x = 355, y = 240)
+        self.level_label = cocos.text.Label(self.highscore.level, \
+                font_size=20, \
+                font_name='Verdana', \
+                bold=True, \
+                color=Main.highlight_color, \
+                x=355, y=240)
         self.add(self.level_label)
 
-        self.image = pyglet.resource.image("bg.png")
+        #bg_file = os.path.abspath('.')
+        bg_file = os.path.abspath('./pic/bg.png')
 
-        self.start_sprite = self.gen_anime_sprite('start.png', 2, 1, 0.5, True, 400, 280)
+        ### CAUTION ###
+        ### the difference between .resource.image and .image.load 
+        ### pyglet.resource.image() CANNOT read files out of current directory
+
+        #self.image = pyglet.resource.image(bg_file)
+        self.image = pyglet.image.load(bg_file)
+
+        self.start_sprite = self.gen_anime_sprite('./pic/start.png', 2, 1, 0.5, True, 400, 280)
         self.add(self.start_sprite)
         #self.start_sprite.visible = False
 
-        self.alpha_image = pyglet.image.ImageGrid(pyglet.resource.image('alpha.png'), 2, 27)   
+        self.alpha_image = pyglet.image.ImageGrid(pyglet.image.load('./pic/alpha.png'), 2, 27)   
 
         self.t2_anime = []
         self.t2_anime.append(self.alpha_image[26])
         self.t2_anime.append(self.alpha_image[53])
         self.t2_seq = pyglet.image.Animation.from_image_sequence(self.t2_anime, 0.5, True)
-        self.t2_sprite = cocos.sprite.Sprite(self.t2_seq, position = (650, 400))
+        self.t2_sprite = cocos.sprite.Sprite(self.t2_seq, position=(650, 400))
         self.add(self.t2_sprite)
         self.t2_sprite.scale = 1.5
         #self.t2_sprite.visible = False
 
         self.alpha_str = []
         for _ in range(self.max_len):
-            self.alpha_str.append(cocos.sprite.Sprite(self.alpha_image[_], position = (0, 0)))
+            self.alpha_str.append(cocos.sprite.Sprite(self.alpha_image[_], position=(0, 0)))
             self.add(self.alpha_str[_])
             #self.alpha_str[_].visible = False
         self.show_menu()
@@ -195,37 +206,40 @@ class Main(cocos.layer.Layer):
 
         for _ in range(5):
             #print('normal', _)
-            self.normal_highscore_label.append(cocos.text.Label(_data[_][1] + ' ' * (10 - len(_data[_][1])) + str(_data[_][0] // 60) + ':' + str(_data[_][0] % 60), 
-               font_size = 16, 
-               font_name = 'Verdana', 
-               bold = False, 
-               color = Main.default_color, 
-               x = 220, y = 110 - (_ * 25)))
+            self.normal_highscore_label.append(cocos.text.Label(_data[_][1] + ' ' * (10 - len(_data[_][1])) + \
+                    str(_data[_][0] // 60) + ':' + str(_data[_][0] % 60), \
+                    font_size=16, \
+                    font_name='Verdana', \
+                    bold=False, \
+                    color=Main.default_color, \
+                    x=220, y=110 - (_ * 25)))
             self.add(self.normal_highscore_label[_])
 
         for _ in range(5):
             #print('hard', _)
-            self.hard_highscore_label.append(cocos.text.Label(_data[5 + _][1] + ' ' * (10 - len(_data[5 + _][1])) + str(_data[5 + _][0] // 60) + ':' + str(_data[5 + _][0] % 60), 
-               font_size = 16, 
-               font_name = 'Verdana', 
-               bold = False, 
-               color = Main.default_color, 
-               x = 450, y = 110 - (_ * 25)))
+            self.hard_highscore_label.append(cocos.text.Label(_data[5 + _][1] + ' ' * (10 - len(_data[5 + _][1])) + \
+                    str(_data[5 + _][0] // 60) + ':' + str(_data[5 + _][0] % 60), \
+                    font_size=16, \
+                    font_name='Verdana', \
+                    bold=False, \
+                    color=Main.default_color, \
+                    x=450, y=110 - (_ * 25)))
             self.add(self.hard_highscore_label[_])
         
 
     def show_menu(self):
-
+        """show menu(title) screen 
+        """
         self.game_started = False
         self.show_alpha('typingpractice', 100, 450)
         for _ in range(6):
             self.alpha_str[_].position = 280 + _ * 50, 500
-            self.alpha_str[_].scale = random.randrange(8,20) / 10
+            self.alpha_str[_].scale = random.randrange(8, 20) / 10
             self.alpha_str[_].rotation = random.randrange(-30, 30)
 
         for _ in range(8):
             self.alpha_str[6 + _].position = 230 + _ * 50, 400 
-            self.alpha_str[6 + _].scale = random.randrange(8,20) / 10
+            self.alpha_str[6 + _].scale = random.randrange(8, 20) / 10
             self.alpha_str[6 + _].rotation = random.randrange(-30, 30)
 
         self.t2_sprite.visible = True
@@ -251,14 +265,14 @@ class Main(cocos.layer.Layer):
 
     def gen_anime_sprite(self, img, grid_x, grid_y, delay, loop, pos_x, pos_y):
 
-        _image = pyglet.resource.image(img)
+        _image = pyglet.image.load(img)
         _anime = pyglet.image.ImageGrid(_image, grid_x, grid_y)
         _seq = pyglet.image.Animation.from_image_sequence(_anime, delay, loop)
-        return cocos.sprite.Sprite(_seq, position = (pos_x, pos_y))
+        return cocos.sprite.Sprite(_seq, position=(pos_x, pos_y))
         
     def show_alpha(self, _str, pos_x=100, pos_y=400):
         if len(_str) > self.max_len:
-            _str = _str[:max_len]
+            _str = _str[:self.max_len]
         print('show alpha:', _str)
         for _ in range(len(_str)):
             if _str[_] in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ':
@@ -273,7 +287,7 @@ class Main(cocos.layer.Layer):
             self.alpha_str[_].visible = True
             self.alpha_str[_].image = self.alpha_image[_str_index]
             self.alpha_str[_].position = pos_x + _ * 50, pos_y
-            self.alpha_str[_].scale = random.randrange(8,20) / 10
+            self.alpha_str[_].scale = random.randrange(8, 20) / 10
             self.alpha_str[_].rotation = random.randrange(-30, 30)
 
     def show_main(self):
@@ -288,7 +302,7 @@ class Main(cocos.layer.Layer):
             if self.highscore.level == 'Normal':
                 #print('Normal game started')
                 for _ in range(self.max_len):
-                    _str.append(chr(random.randint(97,122))) 
+                    _str.append(chr(random.randint(97, 122))) 
                 random.shuffle(_str)
                 _str = ''.join(_str)
             elif self.highscore.level == 'Hard':
@@ -307,7 +321,7 @@ class Main(cocos.layer.Layer):
             self.show_alpha(_str, 100, 400)
 
         self.main_displayed = True
-        self.game_status ='main'
+        self.game_status = 'main'
 
         
         
@@ -340,20 +354,20 @@ class Main(cocos.layer.Layer):
         if self.game_started:
             self.time_passed += dt
             #self.start_timer = 0
-            self.Time_Label.element.text = str(int(self.time_passed // 60)) + ' : ' + str(int(self.time_passed % 60)) 
+            self.time_label.element.text = str(int(self.time_passed // 60)) + ' : ' + str(int(self.time_passed % 60)) 
             self.highscore.refresh_highscore(self.normal_highscore_label, self.hard_highscore_label, self.best_time_label)
 
-        if self.game_status == 'menu' and self.menu_displayed == False:
+        if self.game_status == 'menu' and (not self.menu_displayed):
             self.show_menu()
             self.hide_main()
             return 1
 
-        if self.game_status == 'main' and self.main_displayed == False:
+        if self.game_status == 'main' and (not self.main_displayed):
             self.show_main()
             self.hide_menu()
             return 1
 
-        if self.game_status == 'highscore' and self.name_displayed == False:
+        if self.game_status == 'highscore' and (not self.name_displayed):
             self.show_highscore_name(self.highscore.name)
             return 1
 
@@ -361,7 +375,7 @@ class Main(cocos.layer.Layer):
 
     def on_key_press(self, key, modifiers):
 
-        _str='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        _str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         self.keys_pressed.add(key)
         key_names = [pyglet.window.key.symbol_string(k) for k in self.keys_pressed]
         
@@ -369,7 +383,7 @@ class Main(cocos.layer.Layer):
             if 'SPACE' in key_names:
                 self.hide_main()
                 self.show_menu()
-            elif 'ENTER' in key_names and self.game_started == False:
+            elif 'ENTER' in key_names and (not self.game_started):
                 self.show_main()
             elif self.game_started:
                 #print('main screen key pressed', key_names)
@@ -389,7 +403,7 @@ class Main(cocos.layer.Layer):
                         if len(self.prac_str) > 10:
                             for _ in range(self.max_len):
                                 _pos_x, _pos_y = self.alpha_str[_].position
-                                if _pos_x - 50 >=0:
+                                if _pos_x - 50 >= 0:
                                     self.alpha_str[_].position = _pos_x - 50, _pos_y
                                 else:
                                     self.alpha_str[_].position = 0, _pos_y
@@ -408,11 +422,11 @@ class Main(cocos.layer.Layer):
                             self.game_started = False
                     else:
                         # wrong typing
-                        action = cocos.actions.RotateBy(15, 0.03) + cocos.actions.RotateBy( -15, 0.03)
+                        action = cocos.actions.RotateBy(15, 0.03) + cocos.actions.RotateBy(-15, 0.03)
                         self.alpha_str[self.max_len - len(self.prac_str)].do(action)
         # <<highscore mode>>
         # do key events when the game is in 'highscore' mode
-        elif self.game_status == 'highscore' and self.game_started == False:
+        elif self.game_status == 'highscore' and (not self.game_started):
             if 'SPACE' in key_names:
                 self.hide_main()
                 self.show_menu()
@@ -472,7 +486,7 @@ class Main(cocos.layer.Layer):
 
     def draw(self):
 
-        self.image.blit(0,0)
+        self.image.blit(0, 0)
 
 if __name__ == '__main__':
 
@@ -480,7 +494,7 @@ if __name__ == '__main__':
     if getattr(sys, 'frozen', False):
         os.chdir(sys._MEIPASS)
 
-    cocos.director.director.init(width = 800, height = 600, caption = 'sprite test')
+    cocos.director.director.init(width=800, height=600, caption='sprite test')
 
     my_highscore = Highscore()
     main_layer = Main(my_highscore)
